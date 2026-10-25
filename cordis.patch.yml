@@ -1,0 +1,10 @@
+# The shipped schedule UI owns `ui-schedule`; this bundle replaces its page.
+# Disable that row so the original and replacement never register the same
+# `main/schedules` key during Web boot.
+- id: ui-schedule
+  name: '@deepseek-ai/dsh-client-ui-schedule'
+  disabled: true
+- insert:
+    - id: automation-console
+      name: '@local/dsh-automation-console'
+      config: {}

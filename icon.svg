@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" width="128" height="128" role="img" aria-label="Automation Console">
+  <defs>
+    <linearGradient id="ac-bg" x1="18" y1="12" x2="112" y2="118" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#3f7df6"/>
+      <stop offset="1" stop-color="#1f4fc4"/>
+    </linearGradient>
+    <linearGradient id="ac-bolt" x1="62" y1="46" x2="79" y2="92" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#fff6c7"/>
+      <stop offset="1" stop-color="#ffd15c"/>
+    </linearGradient>
+  </defs>
+  <rect width="128" height="128" rx="30" fill="url(#ac-bg)"/>
+  <circle cx="64" cy="65" r="35" fill="none" stroke="#fff" stroke-opacity=".9" stroke-width="7"/>
+  <path d="M64 43v24l15 9" fill="none" stroke="#fff" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M48 21h32" fill="none" stroke="#fff" stroke-opacity=".9" stroke-width="7" stroke-linecap="round"/>
+  <path d="M73 51 55 78h14l-6 22 21-31H70z" fill="url(#ac-bolt)" stroke="#1f4fc4" stroke-width="3" stroke-linejoin="round"/>
+</svg>
