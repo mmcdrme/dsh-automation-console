@@ -212,14 +212,14 @@ window.__ModuleLoader__.load({
       'noNext': '无后续运行',
       'lastDelivery': '上次投递 {time}',
       'form.title': '新建自动化任务',
-      'form.subtitle': '为每个选中的会话各创建一个任务，创建过程不会发起对话。',
+      'form.subtitle': '多选会话则各创建一个任务，创建过程不会发起对话。',
       'form.name': '任务名称',
-      'form.namePlaceholder': '例如：每日构建检查',
+      'form.namePlaceholder': '',
       'form.prompt': '任务内容',
-      'form.promptPlaceholder': '到期时希望会话收到什么内容？',
+      'form.promptPlaceholder': '',
       'form.session': '目标会话',
       'form.sessionSearch': '搜索会话',
-      'form.sessionEmpty': '没有可绑定的会话。请先在任意对话中发送一条消息。',
+      'form.sessionEmpty': '没有可绑定的会话。请先创建对话。',
       'form.sessionHint': '每个选中的会话会各创建一个任务，不会创建新对话。',
       'form.sessionMore': '还有 {count} 个会话，请用搜索缩小范围。',
       'form.sessionSelectAll': '全选',
@@ -244,7 +244,7 @@ window.__ModuleLoader__.load({
       'form.delayHint': '至少 1 秒。延迟后执行一次。',
       'form.intervalHint': '至少 1 分钟。按该间隔重复执行。',
       'form.autoClean': '自动删除历史记录',
-      'form.autoCleanHint': '任务执行后删除本次运行记录；单次任务执行后直接删除任务自身。',
+      'form.autoCleanHint': '任务执行后删除运行记录；单次任务执行后直接删除任务自身。',
       'form.weekdays': '星期',
       'form.cron': 'Cron 表达式',
       'form.cronHint': '5 个字段：分 时 日 月 周',
@@ -2549,7 +2549,24 @@ window.__ModuleLoader__.load({
               h(
                 'header',
                 { className: 'ac-page-heading' },
-                h('h1', null, t('title')),
+                h(
+                  'div',
+                  { className: 'ac-heading-lead' },
+                  h('h1', null, t('title')),
+                  notice
+                    ? h(
+                      'div',
+                      { className: cls('ac-notice', 'ac-notice-inline', `ac-notice-${notice.tone}`), role: 'status' },
+                      notice.tone === 'success' ? h(IconCheck, { size: 14 }) : h(IconAlert, { size: 14 }),
+                      h('p', { title: notice.text }, notice.text),
+                      h(
+                        IconButton,
+                        { label: t('aria.close'), onClick: () => setNotice(null), className: 'ac-notice-close' },
+                        h(IconClose, { size: 13 }),
+                      ),
+                    )
+                    : null,
+                ),
                 h(
                   'div',
                   { className: 'ac-heading-actions' },
@@ -2576,19 +2593,6 @@ window.__ModuleLoader__.load({
                   ),
                 ),
               ),
-              notice
-                ? h(
-                  'div',
-                  { className: cls('ac-notice', `ac-notice-${notice.tone}`), role: 'status' },
-                  notice.tone === 'success' ? h(IconCheck, { size: 15 }) : h(IconAlert, { size: 15 }),
-                  h('p', null, notice.text),
-                  h(
-                    IconButton,
-                    { label: t('aria.close'), onClick: () => setNotice(null), className: 'ac-notice-close' },
-                    h(IconClose, { size: 14 }),
-                  ),
-                )
-                : null,
               h(
                 'div',
                 { className: 'ac-filters' },
@@ -2794,12 +2798,10 @@ window.__ModuleLoader__.load({
         console.warn('[automation-console] one or more Client services are unavailable');
       }
 
-      // The bundle patch normally disables the shipped ui-schedule row. The
-      // delayed install is a second safety net: it also avoids registering
-      // the original `schedules` key while any remaining Web-boot activation
-      // is still in progress.
+      // The bundle patch disables the shipped ui-schedule row, so this page is
+      // the only occupant of the `schedules` key. `ctx.slots.inject` already
+      // waits for the slot to be declared, so the page installs right away.
       let disposers = [];
-      let installTimer;
 
       const installPanel = () => {
         if (disposers.length > 0) return;
@@ -2836,24 +2838,14 @@ window.__ModuleLoader__.load({
         }
       };
 
-      const scheduleInstall = () => {
-        if (disposers.length > 0) return;
-        if (installTimer !== undefined) clearTimeout(installTimer);
-        installTimer = setTimeout(() => {
-          installTimer = undefined;
-          installPanel();
-        }, 2000);
-      };
-
-      const offReset = ctx.on('connection/reset', scheduleInstall);
-      installTimer = setTimeout(installPanel, 4000);
+      const offReset = ctx.on('connection/reset', installPanel);
+      installPanel();
 
       ctx.effect(() => () => {
         offReset();
-        if (installTimer !== undefined) clearTimeout(installTimer);
         for (const dispose of disposers.reverse()) dispose?.();
         disposers = [];
-      }, 'automation-console: deferred page');
+      }, 'automation-console: page');
     }
 
     const STYLES = `
@@ -2861,8 +2853,9 @@ window.__ModuleLoader__.load({
       .ac-list-pane{flex-direction:column;flex:1;min-width:0;min-height:0;display:flex}
       .ac-page-scroll{scrollbar-gutter:stable;--dsh-scrollbar-width:9px;--dsh-scrollbar-thumb-border:2px;flex:1;min-height:0;overflow:auto}
       .ac-page-content{max-width:960px;margin:0 auto;padding:0 clamp(24px,4vw,48px) 48px}
-      .ac-page-heading{flex-wrap:wrap;justify-content:space-between;align-items:center;gap:16px;margin-bottom:24px;padding-top:28px;display:flex}
+      .ac-page-heading{flex-wrap:nowrap;justify-content:space-between;align-items:center;gap:16px;margin-bottom:24px;padding-top:28px;display:flex}
       [data-platform=darwin] .ac-page-heading{padding-top:calc(28px + var(--dsh-frame-top-clearance,0px))}
+      .ac-heading-lead{flex:1 1 auto;min-width:0;align-items:center;gap:12px;display:flex}
       .ac-page-heading h1{flex:0 auto;min-width:0;max-width:100%;margin:0;font-size:20px;font-weight:500;line-height:28px}
       .ac-heading-actions{white-space:nowrap;flex:none;align-items:center;gap:4px;display:flex}
       .ac-btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;font:inherit;cursor:pointer;border:0;background:0 0;color:var(--dsw-alias-label-primary);border-radius:16px;transition:background .15s,color .15s,opacity .15s}
@@ -2913,6 +2906,9 @@ window.__ModuleLoader__.load({
       .ac-notice{background:var(--dsw-specific-sidebar-fill);color:var(--dsw-alias-label-secondary);border-radius:10px;flex-wrap:wrap;align-items:flex-start;gap:9px;margin:0 0 20px;padding:12px 14px;font-size:12px;line-height:20px;display:flex}
       .ac-notice p{flex:1;margin:0;min-width:0;overflow-wrap:anywhere}
       .ac-notice-close{width:24px;height:24px;margin:-2px -4px 0 0;color:inherit}
+      .ac-notice-inline{flex:0 1 auto;min-width:0;max-width:100%;height:28px;margin:0;padding:0 3px 0 10px;border-radius:14px;flex-wrap:nowrap;align-items:center;gap:7px}
+      .ac-notice-inline p{flex:0 1 auto;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;line-height:20px}
+      .ac-notice-inline .ac-notice-close{width:22px;height:22px;margin:0;flex:none}
       .ac-notice-success{color:var(--dsw-alias-state-success-primary)}
       .ac-notice-warning{color:var(--dsw-alias-state-warn-primary)}
       .ac-notice-error{color:var(--dsw-alias-state-error-primary)}
@@ -3052,7 +3048,8 @@ window.__ModuleLoader__.load({
       }
       @media (max-width:620px){
         .ac-page-content{padding:0 14px 32px}
-        .ac-page-heading{padding-top:18px}
+        .ac-page-heading{flex-wrap:wrap;padding-top:18px}
+        .ac-heading-lead{flex:1 1 100%}
         .ac-heading-actions{width:100%;justify-content:flex-end}
         .ac-batch-bar{padding-left:14px;padding-right:14px}
         .ac-modal-backdrop{padding:10px}

@@ -1,6 +1,6 @@
 {
   "name": "@local/dsh-automation-console",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "private": true,
   "description": "Enhances the original Automation tasks page with in-place creation, multi-conversation binding, and bulk deletion.",
   "type": "module",

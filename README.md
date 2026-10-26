@@ -1,4 +1,4 @@
-# 自动化任务（增强） / Automation Console
+# 自动化任务(原版增强) / Automation Console
 
 一个 DSH（DeepSeek Harness）Web 客户端插件：在原版「自动化任务」页面上做增强，加入**免对话创建**、**多会话绑定**和**批量删除**。
 
