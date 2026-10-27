@@ -2798,10 +2798,12 @@ window.__ModuleLoader__.load({
         console.warn('[automation-console] one or more Client services are unavailable');
       }
 
-      // The bundle patch disables the shipped ui-schedule row, so this page is
-      // the only occupant of the `schedules` key. `ctx.slots.inject` already
-      // waits for the slot to be declared, so the page installs right away.
+      // The bundle patch normally disables the shipped ui-schedule row. The
+      // delayed install is a second safety net: it also avoids registering
+      // the original `schedules` key while any remaining Web-boot activation
+      // is still in progress.
       let disposers = [];
+      let installTimer;
 
       const installPanel = () => {
         if (disposers.length > 0) return;
@@ -2838,14 +2840,24 @@ window.__ModuleLoader__.load({
         }
       };
 
-      const offReset = ctx.on('connection/reset', installPanel);
-      installPanel();
+      const scheduleInstall = () => {
+        if (disposers.length > 0) return;
+        if (installTimer !== undefined) clearTimeout(installTimer);
+        installTimer = setTimeout(() => {
+          installTimer = undefined;
+          installPanel();
+        }, 100);
+      };
+
+      const offReset = ctx.on('connection/reset', scheduleInstall);
+      installTimer = setTimeout(installPanel, 100);
 
       ctx.effect(() => () => {
         offReset();
+        if (installTimer !== undefined) clearTimeout(installTimer);
         for (const dispose of disposers.reverse()) dispose?.();
         disposers = [];
-      }, 'automation-console: page');
+      }, 'automation-console: deferred page');
     }
 
     const STYLES = `
